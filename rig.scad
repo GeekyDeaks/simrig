@@ -21,7 +21,6 @@ BACKREST_LENGTH = 700;
 BACKREST_DEPTH = 20;
 BACKREST_ANGLE = 100;
 
-
 SEAT_ANGLE = 13;
 
 //SEAT_REAR_HOLE_DISTANCE = 100; // from rear of seat to reat mounting holes
@@ -30,6 +29,12 @@ SEAT_FRONT_HOLE_DISTANCE = -130; // initial distance from front seat bolts to wh
 
 SEAT_REAR_HEIGHT = 320;
 SEAT_FRONT_HEIGHT = SEAT_REAR_HEIGHT + (sin(SEAT_ANGLE) * SEAT_HOLE_DISTANCE);
+
+MAIN_SUPPORT_HEIGHT = 750;
+MAIN_SUPPORT_DEPTH = 250;
+MAIN_SUPPORT_OFFSET = 90; // how far from the middle if the rig
+MAIN_SUPPORT_FRONT_LOWER_OFFSET = 200; // how far the front lower supports are towards the pedals
+MAIN_SUPPORT_REAR_LOWER_OFFSET = 400; // how far the rear lower supports are towards the pedals
 
 WHEEL_BASE_ANGLE = 8;
 WHEEL_BASE_DEPTH = 150;
@@ -40,6 +45,7 @@ WHEEL_BASE_FRONT_DEPTH = 35; // amount the wheel base extends beyond the front m
 WHEEL_DIAMETER = 280;
 WHEEL_DEPTH = 35;
 WHEEL_TO_BASE = 50;
+
 
 WHEEL_MOUNT_FRONT_DISTANCE = 90;
 WHEEL_MOUNT_FRONT_ANGLE = 20;
@@ -93,6 +99,18 @@ module strut(length=1000) {
 
 }
 
+module rounded_strut(length=1000) {
+
+    translate([-length / 2 + STRUT_HEIGHT / 2, 0, 0])
+    rotate([90, 0, 0])
+    cylinder(d=STRUT_HEIGHT, h=STRUT_WIDTH, center=true);
+    strut(length - STRUT_HEIGHT);
+    translate([length /2 - STRUT_HEIGHT / 2, 0, 0])
+    rotate([90, 0, 0])
+    cylinder(d=STRUT_HEIGHT, h=STRUT_WIDTH, center=true);
+
+}
+
 
 module seat_mount() {
 
@@ -100,33 +118,34 @@ module seat_mount() {
     translate([SEAT_FRONT_HOLE_DISTANCE, BASE_WIDTH / 2 - STRUT_WIDTH / 2, - STRUT_HEIGHT / 2])
     rotate([0, -90, 0])
     translate([SEAT_FRONT_HEIGHT / 2, 0, 0])
-    strut(SEAT_FRONT_HEIGHT);
+    rounded_strut(SEAT_FRONT_HEIGHT);
 
     translate([SEAT_FRONT_HOLE_DISTANCE, - BASE_WIDTH / 2 + STRUT_WIDTH / 2, - STRUT_HEIGHT / 2])
     rotate([0, -90 ,0])
     translate([SEAT_FRONT_HEIGHT / 2, 0, 0])
-    strut(SEAT_FRONT_HEIGHT);
+    rounded_strut(SEAT_FRONT_HEIGHT);
 
     // rear support
     translate([SEAT_FRONT_HOLE_DISTANCE - SEAT_HOLE_DISTANCE, BASE_WIDTH / 2 - STRUT_WIDTH / 2, - STRUT_HEIGHT / 2])
     rotate([0, -90, 0])
     translate([SEAT_REAR_HEIGHT / 2, 0, 0])
-    strut(SEAT_REAR_HEIGHT);
+    rounded_strut(SEAT_REAR_HEIGHT);
 
     translate([SEAT_FRONT_HOLE_DISTANCE - SEAT_HOLE_DISTANCE, -BASE_WIDTH / 2 +  STRUT_WIDTH / 2, - STRUT_HEIGHT / 2])
     rotate([0, -90 ,0])
     translate([SEAT_REAR_HEIGHT / 2, 0, 0])
-    strut(SEAT_REAR_HEIGHT);
+    rounded_strut(SEAT_REAR_HEIGHT);
 
 }
 
 module rig_base() {
-    translate([(RIG_FRONT_LENGTH - RIG_REAR_LENGTH) / 2, BASE_WIDTH / 2 + STRUT_WIDTH / 2, 0])
+    mid = (RIG_FRONT_LENGTH - RIG_REAR_LENGTH) / 2;
+    translate([mid, BASE_WIDTH / 2 + STRUT_WIDTH / 2, 0])
     strut(RIG_LENGTH);
-    translate([(RIG_FRONT_LENGTH - RIG_REAR_LENGTH) / 2, - BASE_WIDTH / 2 - STRUT_WIDTH / 2, 0])
+    translate([mid, - BASE_WIDTH / 2 - STRUT_WIDTH / 2, 0])
     strut(RIG_LENGTH);
 
-    translate([0, 0, 0])
+    translate([mid, 0, 0])
     rotate([0, 0, 90])
     strut(BASE_WIDTH);
 
@@ -180,42 +199,20 @@ module seat() {
 
 }
 
-module wheel_mount() {
-
-    translate([ WHEEL_MOUNT_FRONT_BOTTOM, RIG_WIDTH / 2 + STRUT_WIDTH / 2, - STRUT_HEIGHT / 2])
-    rotate([0, -90 -WHEEL_MOUNT_FRONT_ANGLE, 0])
-    translate([WHEEL_MOUNT_FRONT_LENGTH/2, 0, 0])
-    strut(WHEEL_MOUNT_FRONT_LENGTH);
-
-    translate([ WHEEL_MOUNT_FRONT_BOTTOM, -RIG_WIDTH / 2 - STRUT_WIDTH / 2, - STRUT_HEIGHT / 2])
-    rotate([0, -90 -WHEEL_MOUNT_FRONT_ANGLE, 0])
-    translate([WHEEL_MOUNT_FRONT_LENGTH/2, 0, 0])
-    strut(WHEEL_MOUNT_FRONT_LENGTH);
-
-
-    translate([ WHEEL_MOUNT_REAR_BOTTOM, -RIG_WIDTH / 2 - STRUT_WIDTH / 2, - STRUT_HEIGHT / 2])
-    rotate([0, - 90 - WHEEL_MOUNT_REAR_ANGLE, 0])
-    translate([WHEEL_MOUNT_REAR_LENGTH/2, 0, 0])
-    strut(WHEEL_MOUNT_REAR_LENGTH);
-
-    translate([ WHEEL_MOUNT_REAR_BOTTOM, RIG_WIDTH / 2 + STRUT_WIDTH / 2, - STRUT_HEIGHT / 2])
-    rotate([0, - 90 - WHEEL_MOUNT_REAR_ANGLE, 0])
-    translate([WHEEL_MOUNT_REAR_LENGTH/2, 0, 0])
-    strut(WHEEL_MOUNT_REAR_LENGTH);
-
-}
-
 module pedal() {
 
-    rotate([0, - (180 - PEDAL_FACE_ANGLE), 0])
-    translate([PEDAL_FACE_OFFSET, 0 ,0])
-    cube([PEDAL_FACE_HEIGHT, PEDAL_FACE_WIDTH, 5], center = true);
+    rotate([0, - (180 - PEDAL_FACE_ANGLE), 0]) {
+        translate([PEDAL_FACE_OFFSET, 0 ,0]) 
+        cube([PEDAL_FACE_HEIGHT, PEDAL_FACE_WIDTH, 5], center = true);
+        translate([PEDAL_FACE_OFFSET / 2, 0, 5])
+        cube([PEDAL_FACE_OFFSET, 10, 5], center=true);
+    }
 
 }
 
 module pedal_box() {
 
-    translate([PEDAL_BOX_POSITION, 0, STRUT_HEIGHT]) {
+    translate([PEDAL_BOX_POSITION, 0, STRUT_HEIGHT/2 + PEDAL_BOX_THICKNESS / 2]) {
 
         translate([PEDAL_BOX_DEPTH / 2, 0, 0])
         cube([PEDAL_BOX_DEPTH, PEDAL_BOX_WIDTH , PEDAL_BOX_THICKNESS], center = true);
@@ -233,14 +230,58 @@ module pedal_box() {
                 pedal();
             }
             
-
         }
 
     }
     
+}
 
+module main_support() {
 
+    // front supports
+    front_length = sqrt(pow(MAIN_SUPPORT_FRONT_LOWER_OFFSET, 2) + pow(MAIN_SUPPORT_HEIGHT, 2));
+    front_angle = atan(MAIN_SUPPORT_FRONT_LOWER_OFFSET / MAIN_SUPPORT_HEIGHT);
 
+    front_offset = MAIN_SUPPORT_OFFSET + MAIN_SUPPORT_FRONT_LOWER_OFFSET;
+    width_offset = RIG_WIDTH / 2 + STRUT_WIDTH / 2;
+    
+    translate([front_offset, -width_offset, - STRUT_HEIGHT / 2])
+    rotate([0, -90 - front_angle, 0])
+    translate([MAIN_SUPPORT_HEIGHT/2, 0, 0])
+    rounded_strut(front_length);
+
+    translate([front_offset, width_offset, - STRUT_HEIGHT / 2])
+    rotate([0, -90 - front_angle, 0])
+    translate([front_length/2, 0, 0])
+    rounded_strut(front_length);
+
+    // rear supports
+    rear_length = sqrt(pow(MAIN_SUPPORT_REAR_LOWER_OFFSET, 2) + pow(MAIN_SUPPORT_HEIGHT, 2));
+    rear_angle = atan(MAIN_SUPPORT_REAR_LOWER_OFFSET / MAIN_SUPPORT_HEIGHT);
+    rear_offset = MAIN_SUPPORT_OFFSET + MAIN_SUPPORT_DEPTH + MAIN_SUPPORT_REAR_LOWER_OFFSET;
+
+    translate([rear_offset, width_offset, - STRUT_HEIGHT / 2])
+    rotate([0, -90 - rear_angle, 0])
+    translate([rear_length/2, 0, 0])
+    rounded_strut(rear_length);
+
+    translate([rear_offset, -width_offset, - STRUT_HEIGHT / 2])
+    rotate([0, -90 - rear_angle, 0])
+    translate([rear_length/2, 0, 0])
+    rounded_strut(rear_length);
+
+    // 
+    translate([MAIN_SUPPORT_OFFSET + MAIN_SUPPORT_DEPTH / 2, -width_offset + STRUT_WIDTH, MAIN_SUPPORT_HEIGHT - STRUT_HEIGHT])
+    rotate([0, -WHEEL_BASE_ANGLE, 0])
+    rounded_strut(MAIN_SUPPORT_DEPTH + STRUT_WIDTH);
+
+    translate([MAIN_SUPPORT_OFFSET + MAIN_SUPPORT_DEPTH / 2, +width_offset - STRUT_WIDTH, MAIN_SUPPORT_HEIGHT - STRUT_HEIGHT])
+    rotate([0, -WHEEL_BASE_ANGLE, 0])
+    rounded_strut(MAIN_SUPPORT_DEPTH + STRUT_WIDTH);
+
+    translate([MAIN_SUPPORT_OFFSET + WHEEL_BASE_DEPTH / 2, 0, MAIN_SUPPORT_HEIGHT - STRUT_HEIGHT / 2])
+    rotate([0, -WHEEL_BASE_ANGLE, 0])
+    cube([WHEEL_BASE_DEPTH, RIG_WIDTH, 20], center=true);
 
 }
 
@@ -250,6 +291,6 @@ seat_mount();
 tv();
 wheel_base();
 seat();
-wheel_mount();
+main_support();
 pedal_box();
 
