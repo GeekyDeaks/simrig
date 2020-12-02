@@ -88,6 +88,13 @@ TV_DEPTH = 80;
 
 TV_POSITION = WHEEL_DEPTH / 2 + WHEEL_TO_BASE + WHEEL_BASE_DEPTH + TV_DEPTH / 2;
 
+HOTAS_STICK_X_OFFSET = 0;
+HOTAS_STICK_Y_OFFSET = -340;
+HOTAS_STICK_Z_OFFSET = WHEEL_HEIGHT -180;
+HOTAS_THROTTLE_X_OFFSET = 0;
+HOTAS_THROTTLE_Y_OFFSET = 340;
+HOTAS_THROTTLE_Z_OFFSET = WHEEL_HEIGHT -180;
+
 module strut(length=1000) {
 
     // extrude the profile
@@ -285,6 +292,20 @@ module main_support() {
 
 }
 
+module hotas_stick() {
+
+    translate([HOTAS_STICK_X_OFFSET, HOTAS_STICK_Y_OFFSET, HOTAS_STICK_Z_OFFSET])
+    cylinder(d = 150, h = 200, center = true);
+
+}
+
+module hotas_throttle() {
+
+    translate([HOTAS_THROTTLE_X_OFFSET, HOTAS_THROTTLE_Y_OFFSET, HOTAS_THROTTLE_Z_OFFSET])
+    cylinder(d = 150, h = 200, center = true);
+
+}
+
 
 rig_base();
 seat_mount();
@@ -293,4 +314,6 @@ wheel_base();
 seat();
 main_support();
 pedal_box();
+%hotas_stick();
+%hotas_throttle();
 
